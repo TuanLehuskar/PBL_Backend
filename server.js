@@ -50,7 +50,13 @@ mongoose
 //   clearInterval(saveDataInterval);
 //   console.log("Interval job stopped");
 // }, 3600000); // 1 giờ
-
+app.get("/", async (req, res) => {
+  try {
+    res.send("Successfully Access Server");
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch data from API" });
+  }
+});
 app.get("/map", async (req, res) => {
   try {
     const response = await getDataFromAPI(
