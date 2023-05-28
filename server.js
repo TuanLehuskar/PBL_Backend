@@ -27,29 +27,29 @@ mongoose
   })
   .then(() => console.log("DB connect successfully"));
 
-app.get("/", async (req, res) => {
-  try {
-    const response = await getDataFromAPI(
-      "https://thingspeak.com/channels/2099351/feed.json"
-    );
-    const data = response;
+// app.get("/", async (req, res) => {
+//   try {
+//     const response = await getDataFromAPI(
+//       "https://thingspeak.com/channels/2099351/feed.json"
+//     );
+//     const data = response;
 
-    // Xử lý dữ liệu JSON
+//     // Xử lý dữ liệu JSON
 
-    // Lưu dữ liệu vào MongoDB
-    await Data.insertMany(data.feeds);
+//     // Lưu dữ liệu vào MongoDB
+//     await Data.insertMany(data.feeds);
 
-    console.log("Data saved to MongoDB");
-  } catch (error) {
-    console.error("Failed to save data to MongoDB");
-  }
-});
+//     console.log("Data saved to MongoDB");
+//   } catch (error) {
+//     console.error("Failed to save data to MongoDB");
+//   }
+// });
 
-// Dừng công việc sau một khoảng thời gian (ví dụ: 1 giờ)
-setTimeout(() => {
-  clearInterval(saveDataInterval);
-  console.log("Interval job stopped");
-}, 3600000); // 1 giờ
+// // Dừng công việc sau một khoảng thời gian (ví dụ: 1 giờ)
+// setTimeout(() => {
+//   clearInterval(saveDataInterval);
+//   console.log("Interval job stopped");
+// }, 3600000); // 1 giờ
 
 app.get("/map", async (req, res) => {
   try {
