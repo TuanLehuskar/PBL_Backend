@@ -28,7 +28,6 @@ const dataDUT2 = require("./src/Data/dut2Data");
 const dataDUT3 = require("./src/Data/dut3Data");
 const dataDUTCenter = require("./src/Data/dutCenterData");
 
-app.use(cors());
 const DB = process.env.DATABASE.replace(
   "<password>",
   process.env.DATABASE_PASSWORD
