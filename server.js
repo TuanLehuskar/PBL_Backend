@@ -1,15 +1,12 @@
 const mongoose = require("mongoose");
 const dotEnv = require("dotenv");
 const fs = require("fs");
-const path = require("path");
-const { inspect } = require("util");
 if (process.env.NODE_ENV == "production") {
   dotEnv.config({ path: "./config.env" });
 } else {
   dotEnv.config({ path: "./local.env" });
 }
 const app = require("./app");
-const cors = require("cors");
 const axios = require("axios");
 const {
   handleTimeData,
@@ -60,7 +57,17 @@ app.get("/", async (req, res) => {
   }
 });
 
-app.post("/click", async (req, res) => {
+const allowCrossDomain = function (req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE");
+  res.header("Access-Control-Allow-Headers", "Content-Type");
+  next();
+};
+
+app.use(allowCrossDomain);
+//some other code
+
+app.post("/click", async (req, res, next) => {
   try {
     const result = JSON.stringify(
       interpolation(req.body.markers, req.body.lat, req.body.lng)
@@ -71,7 +78,7 @@ app.post("/click", async (req, res) => {
   }
 });
 
-app.get("/api/dashboard/:id", async (req, res) => {
+app.get("/api/dashboard/:id", async (req, res, next) => {
   const elementId = req.params.id;
   let elementData;
   switch (elementId) {
@@ -95,7 +102,7 @@ app.get("/api/dashboard/:id", async (req, res) => {
   }
 });
 
-app.get("/api/markers/:id", async (req, res) => {
+app.get("/api/markers/:id", async (req, res, next) => {
   const markerId = req.params.id;
   let markerData;
   switch (markerId) {
