@@ -12,6 +12,7 @@ const {
   handleTimeData,
   separateDataByField,
   updateDataPeriodically,
+  handleDataDiagram,
 } = require("./src/Data/dataUtils");
 const { getDataFromAPI } = require("./src/Data/apiService");
 const {
@@ -25,6 +26,14 @@ const dataDUT2 = require("./src/Data/dut2Data");
 const dataDUT3 = require("./src/Data/dut3Data");
 const dataDUTCenter = require("./src/Data/dutCenterData");
 
+const allowCrossDomain = function (req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE");
+  res.header("Access-Control-Allow-Headers", "Content-Type");
+  next();
+};
+
+app.use(allowCrossDomain);
 const DB = process.env.DATABASE.replace(
   "<password>",
   process.env.DATABASE_PASSWORD
@@ -37,7 +46,45 @@ mongoose
     useFindAndModify: false,
     useUnifiedTopology: true,
   })
-  .then(() => console.log("DB connect successfully"));
+  .then(() => console.log("DB connect successfully"))
+  .catch((err) => console.error(err));
+
+app.get("/diagram/:id", async (req, res) => {
+  try {
+    if (req.params.id == "1") {
+      const dataCount = 48;
+      const interval = 30; // 15 minutes
+
+      const result = await Data.find()
+        .sort({ entry_id: -1 }) // Sort in descending order of entry_id
+        .limit(dataCount * interval);
+
+      const filteredResult = result.filter(
+        (entry, index) => index % interval === 0
+      );
+      const convertedData = handleDataDiagram(filteredResult.reverse());
+      res.json(convertedData);
+    } else {
+      let elementData;
+      const elementId = req.params.id;
+      switch (elementId) {
+        case "2":
+          elementData = dataDUT2;
+          break;
+        case "3":
+          elementData = dataDUT3;
+          break;
+        case "4":
+          elementData = dataDUTCenter;
+          break;
+      }
+      res.json(elementData);
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal Server Error");
+  }
+});
 
 app.get("/", async (req, res) => {
   try {
@@ -57,14 +104,6 @@ app.get("/", async (req, res) => {
   }
 });
 
-const allowCrossDomain = function (req, res, next) {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE");
-  res.header("Access-Control-Allow-Headers", "Content-Type");
-  next();
-};
-
-app.use(allowCrossDomain);
 //some other code
 
 app.post("/click", async (req, res, next) => {

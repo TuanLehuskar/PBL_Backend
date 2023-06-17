@@ -122,8 +122,68 @@ const updateDataPeriodically = () => {
   }, 15000); // Gửi request và ghi dữ liệu vào file mỗi 15 giây
 };
 
+const handleDataDiagram = (data) => {
+  const convertedData = {
+    temperature: [],
+    humidity: [],
+    pm25: [],
+    pm10: [],
+    CO: [],
+    poisonGas: [],
+  };
+
+  data.forEach((item) => {
+    const date = new Date(item.created_at);
+    const hours = date.getHours().toString().padStart(2, "0");
+    const minutes = date.getMinutes().toString().padStart(2, "0");
+    const seconds = date.getSeconds().toString().padStart(2, "0");
+    const time = `${hours}:${minutes}:${seconds}`;
+
+    const temperatureObj = {
+      date: date.toISOString().split("T")[0],
+      time,
+      value: parseInt(item.field1) || 0,
+    };
+    const humidityObj = {
+      date: date.toISOString().split("T")[0],
+      time,
+      value: parseInt(item.field2) || 0,
+    };
+    const pm25Obj = {
+      date: date.toISOString().split("T")[0],
+      time,
+      value: parseInt(item.field3) || 0,
+    };
+    const pm10Obj = {
+      date: date.toISOString().split("T")[0],
+      time,
+      value: parseInt(item.field4) || 0,
+    };
+    const COObj = {
+      date: date.toISOString().split("T")[0],
+      time,
+      value: parseInt(item.field5) || 0,
+    };
+    const poisonGasObj = {
+      date: date.toISOString().split("T")[0],
+      time,
+      value: parseInt(item.field6) || 0,
+    };
+
+    convertedData.temperature.push(temperatureObj);
+    convertedData.humidity.push(humidityObj);
+    convertedData.pm25.push(pm25Obj);
+    convertedData.pm10.push(pm10Obj);
+    convertedData.CO.push(COObj);
+    convertedData.poisonGas.push(poisonGasObj);
+  });
+
+  return convertedData;
+};
+
 module.exports = {
   handleTimeData,
   separateDataByField,
   updateDataPeriodically,
+  handleDataDiagram,
 };
