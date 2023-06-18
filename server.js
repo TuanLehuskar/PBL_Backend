@@ -52,48 +52,14 @@ mongoose
   .then(() => console.log("DB connect successfully"))
   .catch((err) => console.error(err));
 
-// app.get("/diagram/:id", async (req, res) => {
-//   try {
-//     if (req.params.id == "1") {
-//       const dataCount = 48;
-//       const interval = 60; // 30 minutes
-
-//       const result = await Data.find()
-//         .sort({ entry_id: -1 }) // Sort in descending order of entry_id
-//         .limit(dataCount * interval);
-
-//       const filteredResult = result.filter(
-//         (entry, index) => index % interval === 0
-//       );
-//       const convertedData = handleDataDiagram(filteredResult.reverse());
-//       res.json(convertedData);
-//     } else {
-//       let elementData;
-//       const elementId = req.params.id;
-//       switch (elementId) {
-//         case "2":
-//           elementData = dataDUT2;
-//           break;
-//         case "3":
-//           elementData = dataDUT3;
-//           break;
-//         case "4":
-//           elementData = dataDUTCenter;
-//           break;
-//       }
-//       res.json(elementData);
-//     }
-//   } catch (err) {
-//     console.error(err);
-//     res.status(500).send("Internal Server Error");
-//   }
-// });
 app.get("/diagram/:id", async (req, res) => {
   try {
     const dataCount = 48;
-    const interval = 60; // 30 minutes
+    const interval = 120; // 30 minutes
 
-    const result = await Data.find()
+    const result = await Data.find({
+      created_at: { $lt: new Date().setHours(0, 0, 0, 0) },
+    })
       .sort({ entry_id: -1 }) // Sort in descending order of entry_id
       .limit(dataCount * interval);
 
@@ -101,6 +67,7 @@ app.get("/diagram/:id", async (req, res) => {
       (entry, index) => index % interval === 0
     );
     const convertedData = handleDataDiagram(filteredResult.reverse());
+
     if (req.params.id == "1") {
       res.json(convertedData);
     } else {
