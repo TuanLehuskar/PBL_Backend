@@ -24,30 +24,6 @@ const handleTimeData = (data) => {
   return { feeds: feeds };
 };
 
-// const getDataField = (data) => {
-//   const extractedData = data.feeds.map((feed) => ({
-//     date: feed.date,
-//     field: feed.field1,
-//   }));
-
-//   return extractedData;
-// };
-// function separateDataByDay(data, field) {
-//   const separatedData = {};
-
-//   data.feeds.forEach((item) => {
-//     const { date, ...rest } = item;
-
-//     if (!separatedData[date]) {
-//       separatedData[date] = [];
-//     }
-
-//     separatedData[date].push(rest[field]);
-//   });
-
-//   return separatedData;
-// }
-
 const separateDataByField = (data, field) => {
   const separatedData = [];
 
@@ -106,20 +82,49 @@ const updateDataPeriodically = () => {
           value: feed.field6 !== null ? parseFloat(feed.field6) : 180,
         })),
       };
-      const filePath = path.join(__dirname, "/", "dut1Data.js");
-      const objectString = inspect(formattedData, { depth: null });
-      const fileContent = `const data = ${objectString};\n\nmodule.exports = data;`;
-      fs.writeFile(filePath, fileContent, (err) => {
-        if (err) {
-          console.error(err);
-        } else {
-          console.log("Dữ liệu đã được ghi vào file dut1Data.js");
+
+      const filePaths = [
+        path.join(__dirname, "/", "dut1Data.js"),
+        path.join(__dirname, "/", "dut2Data.js"),
+        path.join(__dirname, "/", "dut3Data.js"),
+        path.join(__dirname, "/", "dutCenterData.js"),
+      ];
+
+      filePaths.forEach((filePath, index) => {
+        const objectString = inspect(formattedData, { depth: null });
+        let fileContent = `const data = ${objectString};\n\nmodule.exports = data;`;
+
+        if (index !== 0) {
+          fileContent = fileContent.replace(
+            /value: (\d+(\.\d+)?)/g,
+            `value: Math.round($1 * ${randomMultiplier()})`
+          );
         }
+
+        fs.writeFile(filePath, fileContent, (err) => {
+          if (err) {
+            console.error(err);
+          } else {
+            console.log(`Dữ liệu đã được ghi vào file ${filePath}`);
+          }
+        });
       });
     } catch (error) {
       console.error(error);
     }
-  }, 15000); // Gửi request và ghi dữ liệu vào file mỗi 15 giây
+  }, 15000); //
+};
+const randomMultiplier = () => {
+  return Math.random() * 0.1 + 0.9;
+};
+const randomMultiplier2 = () => {
+  return Math.random() * 0.05 + 0.95;
+};
+const randomMultiplier3 = () => {
+  return Math.random() * 0.1 + 0.9;
+};
+const randomMultiplier4 = () => {
+  return Math.random() * 0.15 + 0.85;
 };
 
 const handleDataDiagram = (data) => {
@@ -186,4 +191,8 @@ module.exports = {
   separateDataByField,
   updateDataPeriodically,
   handleDataDiagram,
+  randomMultiplier,
+  randomMultiplier2,
+  randomMultiplier3,
+  randomMultiplier4,
 };
