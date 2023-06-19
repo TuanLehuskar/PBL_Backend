@@ -3,11 +3,6 @@ const path = require("path");
 const { inspect } = require("util");
 const fs = require("fs");
 
-const dataDUT1 = require("./dut1Data");
-const dataDUT2 = require("./dut2Data");
-const dataDUT3 = require("./dut3Data");
-const dataDUTCenter = require("./dutCenterData");
-
 const handleTimeData = (data) => {
   const feeds = data.feeds.map((feed) => {
     const createdAt = new Date(feed.created_at);
@@ -83,23 +78,18 @@ const updateDataPeriodically = () => {
         })),
       };
 
-      const filePaths = [
-        path.join(__dirname, "/", "dut1Data.js"),
-        path.join(__dirname, "/", "dut2Data.js"),
-        path.join(__dirname, "/", "dut3Data.js"),
-        path.join(__dirname, "/", "dutCenterData.js"),
-      ];
+      const filePaths = [path.join(__dirname, "/", "dut1Data.js")];
 
       filePaths.forEach((filePath, index) => {
         const objectString = inspect(formattedData, { depth: null });
         let fileContent = `const data = ${objectString};\n\nmodule.exports = data;`;
 
-        if (index !== 0) {
-          fileContent = fileContent.replace(
-            /value: (\d+(\.\d+)?)/g,
-            `value: Math.round($1 * ${randomMultiplier()})`
-          );
-        }
+        // if (index !== 0) {
+        //   fileContent = fileContent.replace(
+        //     /value: (\d+(\.\d+)?)/g,
+        //     `value: Math.round($1 * ${randomMultiplier()})`
+        //   );
+        // }
 
         fs.writeFile(filePath, fileContent, (err) => {
           if (err) {
@@ -186,6 +176,26 @@ const handleDataDiagram = (data) => {
   return convertedData;
 };
 
+const handleLastValue = (data) => {
+  const result = {};
+  for (let field in data) {
+    const values = data[field];
+    const lastObject = values[values.length - 1];
+    const lastValue = lastObject.value;
+    result[field] = lastValue;
+  }
+  return result;
+};
+
+const multiplierLastValue = (data) => {
+  const result = {};
+  for (let field in data) {
+    const value = Math.round(data[field] * randomMultiplier());
+    result[field] = value;
+  }
+  return result;
+};
+
 module.exports = {
   handleTimeData,
   separateDataByField,
@@ -195,4 +205,6 @@ module.exports = {
   randomMultiplier2,
   randomMultiplier3,
   randomMultiplier4,
+  handleLastValue,
+  multiplierLastValue,
 };

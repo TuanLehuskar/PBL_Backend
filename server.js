@@ -16,6 +16,8 @@ const {
   randomMultiplier2,
   randomMultiplier3,
   randomMultiplier4,
+  handleLastValue,
+  multiplierLastValue,
 } = require("./src/Data/dataUtils");
 const { getDataFromAPI } = require("./src/Data/apiService");
 const {
@@ -152,45 +154,21 @@ app.post("/click", async (req, res, next) => {
   }
 });
 
-app.get("/api/dashboard/:id", async (req, res, next) => {
-  const elementId = req.params.id;
-  let elementData;
-  switch (elementId) {
-    case "1":
-      elementData = dataDUT1;
-      break;
-    case "2":
-      elementData = dataDUT2;
-      break;
-    case "3":
-      elementData = dataDUT3;
-      break;
-    case "4":
-      elementData = dataDUTCenter;
-      break;
-  }
-  if (elementData) {
-    res.json(elementData);
-  } else {
-    res.status(404).json({ error: "Temperature not found" });
-  }
-});
-
 app.get("/api/markers/:id", async (req, res, next) => {
   const markerId = req.params.id;
   let markerData;
   switch (markerId) {
     case "1":
-      markerData = dataDUT1;
+      markerData = handleLastValue(dataDUT1);
       break;
     case "2":
-      markerData = dataDUT2;
+      markerData = multiplierLastValue(handleLastValue(dataDUT1));
       break;
     case "3":
-      markerData = dataDUT3;
+      markerData = multiplierLastValue(handleLastValue(dataDUT1));
       break;
     case "4":
-      markerData = dataDUTCenter;
+      markerData = multiplierLastValue(handleLastValue(dataDUT1));
       break;
   }
   if (markerData) {
