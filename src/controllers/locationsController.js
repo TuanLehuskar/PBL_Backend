@@ -1,6 +1,7 @@
 const { findNearestMarkers } = require("./mapController");
 
 const DataDUTCenter = require("../Data/dutCenterData");
+const { randomMultiplier, randomMultiplier4 } = require("../Data/dataUtils");
 
 const handleTemperature = (dataset) => {
   const newArray = [];
@@ -93,7 +94,6 @@ const handlePoisonGas = (dataset) => {
     const object = dataset[i];
     const poisonGasSet = object.value.poisonGas;
     const lastpoisonGasValue = poisonGasSet[poisonGasSet.length - 1];
-
     const distance = object.distance;
     const newObj = {
       poisonGas: lastpoisonGasValue,
@@ -106,7 +106,6 @@ const handlePoisonGas = (dataset) => {
 
 const interpolation = (markers, lat, lng) => {
   const dataFromNearests = findNearestMarkers(markers, lat, lng);
-
   const temperatureValues = handleTemperature(dataFromNearests);
   const humidityValues = handleHumidity(dataFromNearests);
   const pm25Values = handlePM25(dataFromNearests);

@@ -2,21 +2,19 @@ const { getDataFromAPI } = require("./apiService");
 const path = require("path");
 const { inspect } = require("util");
 const fs = require("fs");
+const mongoose = require("mongoose");
+const Data = require("../models/dataModel");
 
 const handleTimeData = (data) => {
-  const feeds = data.feeds.map((feed) => {
-    const createdAt = new Date(feed.created_at);
-    const time = createdAt.toTimeString().slice(0, 8);
-    const date = createdAt.toISOString().slice(0, 10);
+  const createdAt = new Date(data.created_at);
+  const time = createdAt.toTimeString().slice(0, 8);
+  const date = createdAt.toISOString().slice(0, 10);
 
-    return {
-      ...feed,
-      time: time,
-      date: date,
-    };
-  });
-
-  return { feeds: feeds };
+  return {
+    ...data,
+    time: time,
+    date: date,
+  };
 };
 
 const separateDataByField = (data, field) => {
@@ -34,76 +32,103 @@ const separateDataByField = (data, field) => {
 
   return separatedData;
 };
+const handleJSONValue = (data) => {
+  const formattedData = {
+    temperature: data.field1 !== null ? parseFloat(data.field1) : 30,
+    humidity: data.field2 !== null ? parseFloat(data.field2) : 70,
+    pm25: data.field3 !== null ? parseFloat(data.field3) : 20,
+    pm10: data.field4 !== null ? parseFloat(data.field4) : 100,
+    CO: data.field5 !== null ? parseFloat(data.field5) : 50,
+    poisonGas: data.field6 !== null ? parseFloat(data.field6) : 100,
+  };
 
-const updateDataPeriodically = () => {
-  setInterval(async () => {
-    try {
-      const response = await getDataFromAPI(
-        "https://thingspeak.com/channels/2099351/feed.json"
-      );
-      const data = response;
-
-      // Xử lý dữ liệu JSON
-      const processedData = handleTimeData(data);
-      const formattedData = {
-        temperature: processedData.feeds.map((feed) => ({
-          date: feed.date,
-          time: feed.time,
-          value: feed.field1 !== null ? parseFloat(feed.field1) : 30,
-        })),
-        humidity: processedData.feeds.map((feed) => ({
-          date: feed.date,
-          time: feed.time,
-          value: feed.field2 !== null ? parseFloat(feed.field2) : 70,
-        })),
-        pm25: processedData.feeds.map((feed) => ({
-          date: feed.date,
-          time: feed.time,
-          value: feed.field3 !== null ? parseFloat(feed.field3) : 160,
-        })),
-        pm10: processedData.feeds.map((feed) => ({
-          date: feed.date,
-          time: feed.time,
-          value: feed.field4 !== null ? parseFloat(feed.field4) : 170,
-        })),
-        CO: processedData.feeds.map((feed) => ({
-          date: feed.date,
-          time: feed.time,
-          value: feed.field5 !== null ? parseFloat(feed.field5) : 170,
-        })),
-        poisonGas: processedData.feeds.map((feed) => ({
-          date: feed.date,
-          time: feed.time,
-          value: feed.field6 !== null ? parseFloat(feed.field6) : 180,
-        })),
-      };
-
-      const filePaths = [path.join(__dirname, "/", "dut1Data.js")];
-
-      filePaths.forEach((filePath, index) => {
-        const objectString = inspect(formattedData, { depth: null });
-        let fileContent = `const data = ${objectString};\n\nmodule.exports = data;`;
-
-        // if (index !== 0) {
-        //   fileContent = fileContent.replace(
-        //     /value: (\d+(\.\d+)?)/g,
-        //     `value: Math.round($1 * ${randomMultiplier()})`
-        //   );
-        // }
-
-        fs.writeFile(filePath, fileContent, (err) => {
-          if (err) {
-            console.error(err);
-          } else {
-            console.log(`Dữ liệu đã được ghi vào file ${filePath}`);
-          }
-        });
-      });
-    } catch (error) {
-      console.error(error);
-    }
-  }, 15000); //
+  return formattedData;
 };
+
+// const updateDataPeriodically = () => {
+//   setInterval(async () => {
+//     try {
+//       const response = await getDataFromAPI(
+//         "https://thingspeak.com/channels/2099351/feed.json"
+//       );
+//       const data = response;
+
+//       // Xử lý dữ liệu JSON
+//       const processedData = handleTimeData(data);
+//       const formattedData = {
+//         temperature: processedData.feeds.map((feed) => ({
+//           date: feed.date,
+//           time: feed.time,
+//           value: feed.field1 !== null ? parseFloat(feed.field1) : 30,
+//         })),
+//         humidity: processedData.feeds.map((feed) => ({
+//           date: feed.date,
+//           time: feed.time,
+//           value: feed.field2 !== null ? parseFloat(feed.field2) : 70,
+//         })),
+//         pm25: processedData.feeds.map((feed) => ({
+//           date: feed.date,
+//           time: feed.time,
+//           value: feed.field3 !== null ? parseFloat(feed.field3) : 160,
+//         })),
+//         pm10: processedData.feeds.map((feed) => ({
+//           date: feed.date,
+//           time: feed.time,
+//           value: feed.field4 !== null ? parseFloat(feed.field4) : 170,
+//         })),
+//         CO: processedData.feeds.map((feed) => ({
+//           date: feed.date,
+//           time: feed.time,
+//           value: feed.field5 !== null ? parseFloat(feed.field5) : 170,
+//         })),
+//         poisonGas: processedData.feeds.map((feed) => ({
+//           date: feed.date,
+//           time: feed.time,
+//           value: feed.field6 !== null ? parseFloat(feed.field6) : 180,
+//         })),
+//         lat: processedData.feeds.map((feed) => ({
+//           date: feed.date,
+//           time: feed.time,
+//           value: feed.field7 !== null ? parseFloat(feed.field7) : 160,
+//         })),
+//         lng: processedData.feeds.map((feed) => ({
+//           date: feed.date,
+//           time: feed.time,
+//           value: feed.field8 !== null ? parseFloat(feed.field8) : 108,
+//         })),
+//       };
+
+//       const filePaths = [
+//         path.join(__dirname, "/", "dut1Data.js"),
+//         path.join(__dirname, "/", "dut2Data.js"),
+//         path.join(__dirname, "/", "dut3Data.js"),
+//         path.join(__dirname, "/", "dutCenterData.js"),
+//       ];
+
+//       filePaths.forEach((filePath, index) => {
+//         const objectString = inspect(formattedData, { depth: null });
+//         let fileContent = `const data = ${objectString};\n\nmodule.exports = data;`;
+
+//         if (index !== 0) {
+//           fileContent = fileContent.replace(
+//             /value: (\d+(\.\d+)?)/g,
+//             `value: Math.round($1 * ${randomMultiplier()})`
+//           );
+//         }
+
+//         fs.writeFile(filePath, fileContent, (err) => {
+//           if (err) {
+//             console.error(err);
+//           } else {
+//             console.log(`Dữ liệu đã được ghi vào file ${filePath}`);
+//           }
+//         });
+//       });
+//     } catch (error) {
+//       console.error(error);
+//     }
+//   }, 15000); //
+// };
 const randomMultiplier = () => {
   return Math.random() * 0.1 + 0.9;
 };
@@ -199,7 +224,6 @@ const multiplierLastValue = (data) => {
 module.exports = {
   handleTimeData,
   separateDataByField,
-  updateDataPeriodically,
   handleDataDiagram,
   randomMultiplier,
   randomMultiplier2,
@@ -207,4 +231,5 @@ module.exports = {
   randomMultiplier4,
   handleLastValue,
   multiplierLastValue,
+  handleJSONValue,
 };

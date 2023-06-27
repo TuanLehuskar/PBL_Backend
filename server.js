@@ -11,13 +11,13 @@ const axios = require("axios");
 const {
   handleTimeData,
   separateDataByField,
-  updateDataPeriodically,
   handleDataDiagram,
   randomMultiplier2,
   randomMultiplier3,
   randomMultiplier4,
   handleLastValue,
   multiplierLastValue,
+  handleJSONValue,
 } = require("./src/Data/dataUtils");
 const { getDataFromAPI } = require("./src/Data/apiService");
 const {
@@ -26,10 +26,6 @@ const {
 } = require("./src/controllers/mapController");
 const { interpolation } = require("./src/controllers/locationsController");
 const Data = require("./src/models/dataModel");
-const dataDUT1 = require("./src/Data/dut1Data");
-const dataDUT2 = require("./src/Data/dut2Data");
-const dataDUT3 = require("./src/Data/dut3Data");
-const dataDUTCenter = require("./src/Data/dutCenterData");
 
 const allowCrossDomain = function (req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
@@ -54,21 +50,26 @@ mongoose
   .then(() => console.log("DB connect successfully"))
   .catch((err) => console.error(err));
 
+const getDataFromMongoDB = async (dataCountFill, intervalFill) => {
+  const dataCount = dataCountFill;
+  const interval = intervalFill; // 60 minutes
+
+  const result = await Data.find({
+    created_at: { $lt: new Date().setHours(0, 0, 0, 0) },
+  })
+    .sort({ entry_id: -1 }) // Sort in descending order of entry_id
+    .limit(dataCount * interval);
+
+  const filteredResult = result.filter(
+    (entry, index) => index % interval === 0
+  );
+  const convertedData = handleDataDiagram(filteredResult.reverse());
+  return convertedData;
+};
+
 app.get("/diagram/:id", async (req, res) => {
   try {
-    const dataCount = 48;
-    const interval = 120; // 30 minutes
-
-    const result = await Data.find({
-      created_at: { $lt: new Date().setHours(0, 0, 0, 0) },
-    })
-      .sort({ entry_id: -1 }) // Sort in descending order of entry_id
-      .limit(dataCount * interval);
-
-    const filteredResult = result.filter(
-      (entry, index) => index % interval === 0
-    );
-    const convertedData = handleDataDiagram(filteredResult.reverse());
+    const convertedData = await getDataFromMongoDB(168, 60);
 
     if (req.params.id == "1") {
       res.json(convertedData);
@@ -155,28 +156,42 @@ app.post("/click", async (req, res, next) => {
 });
 
 app.get("/api/markers/:id", async (req, res, next) => {
-  const markerId = req.params.id;
-  let markerData;
-  switch (markerId) {
-    case "1":
-      markerData = handleLastValue(dataDUT1);
-      break;
-    case "2":
-      markerData = multiplierLastValue(handleLastValue(dataDUT1));
-      break;
-    case "3":
-      markerData = multiplierLastValue(handleLastValue(dataDUT1));
-      break;
-    case "4":
-      markerData = multiplierLastValue(handleLastValue(dataDUT1));
-      break;
-  }
-  if (markerData) {
-    // Trả về dữ liệu dưới dạng JSON
-    res.json(markerData);
-  } else {
-    // Trường hợp không tìm thấy markerId
-    res.status(404).json({ error: "Marker not found" });
+  try {
+    // Lấy giá trị cuối cùng từ MongoDB
+    const lastDocument = await Data.findOne({}).sort({ created_at: -1 }).exec();
+
+    if (lastDocument) {
+      const markerId = req.params.id;
+      let markerData;
+
+      switch (markerId) {
+        case "1":
+          markerData = handleJSONValue(lastDocument);
+          break;
+        case "2":
+          markerData = multiplierLastValue(handleJSONValue(lastDocument));
+          break;
+        case "3":
+          markerData = multiplierLastValue(handleJSONValue(lastDocument));
+          break;
+        case "4":
+          markerData = multiplierLastValue(handleJSONValue(lastDocument));
+          break;
+        default:
+          // Trường hợp markerId không hợp lệ
+          return res.status(404).json({ error: "Marker not found" });
+      }
+
+      // Trả về dữ liệu dưới dạng JSON
+      res.json(markerData);
+    } else {
+      // Trường hợp không có dữ liệu trong MongoDB
+      res.status(404).json({ error: "No data found in MongoDB" });
+    }
+  } catch (error) {
+    console.error(error);
+    // Xử lý lỗi nếu có
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
@@ -184,5 +199,4 @@ app.get("/api/markers/:id", async (req, res, next) => {
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`App running on port ${port}`);
-  setInterval(updateDataPeriodically, 15000);
 });

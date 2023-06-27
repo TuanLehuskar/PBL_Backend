@@ -14,6 +14,8 @@ const dataSchema = new mongoose.Schema({
   field4: String,
   field5: String,
   field6: String,
+  field7: String,
+  field8: String,
 });
 
 const Data = mongoose.model("datas", dataSchema);
