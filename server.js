@@ -9,21 +9,14 @@ if (process.env.NODE_ENV == "production") {
 const app = require("./app");
 const axios = require("axios");
 const {
-  handleTimeData,
-  separateDataByField,
   handleDataDiagram,
   randomMultiplier2,
   randomMultiplier3,
   randomMultiplier4,
-  handleLastValue,
   multiplierLastValue,
   handleJSONValue,
 } = require("./src/Data/dataUtils");
 const { getDataFromAPI } = require("./src/Data/apiService");
-const {
-  distanceCal,
-  findNearestMarkers,
-} = require("./src/controllers/mapController");
 const { interpolation } = require("./src/controllers/locationsController");
 const Data = require("./src/models/dataModel");
 
@@ -49,6 +42,11 @@ mongoose
   })
   .then(() => console.log("DB connect successfully"))
   .catch((err) => console.error(err));
+
+const getLastDataFromMongoDB = async () => {
+  const lastDocument = await Data.findOne({}).sort({ created_at: -1 }).exec();
+  return lastDocument;
+};
 
 const getDataFromMongoDB = async (dataCountFill, intervalFill) => {
   const dataCount = dataCountFill;
@@ -146,8 +144,9 @@ app.get("/", async (req, res) => {
 
 app.post("/click", async (req, res, next) => {
   try {
+    const lastDocument = await getLastDataFromMongoDB();
     const result = JSON.stringify(
-      interpolation(req.body.markers, req.body.lat, req.body.lng)
+      interpolation(req.body.markers, req.body.lat, req.body.lng, lastDocument)
     );
     res.json(result);
   } catch (error) {
@@ -158,8 +157,7 @@ app.post("/click", async (req, res, next) => {
 app.get("/api/markers/:id", async (req, res, next) => {
   try {
     // Lấy giá trị cuối cùng từ MongoDB
-    const lastDocument = await Data.findOne({}).sort({ created_at: -1 }).exec();
-
+    const lastDocument = await getLastDataFromMongoDB();
     if (lastDocument) {
       const markerId = req.params.id;
       let markerData;

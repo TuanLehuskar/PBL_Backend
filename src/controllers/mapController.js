@@ -1,8 +1,6 @@
-const dataDUT1 = require("../Data/dut1Data");
-const dataDUT2 = require("../Data/dut2Data");
-const dataDUT3 = require("../Data/dut3Data");
-const dataDUTCenter = require("../Data/dutCenterData");
-
+const mongoose = require("mongoose");
+const Data = require("../models/dataModel");
+const { multiplierLastValue } = require("../Data/dataUtils");
 const distanceCal = (lat1, lon1, lat2, lon2) => {
   const R = 6371; // Bán kính trái đất trong kilômét
   const phi1 = (lat1 * Math.PI) / 180;
@@ -22,7 +20,7 @@ const distanceCal = (lat1, lon1, lat2, lon2) => {
   return d * 1000;
 };
 
-const findNearestMarkers = (markers, lat, lng) => {
+const findNearestMarkers = (markers, lat, lng, lastDocument) => {
   const nearestMarkers = [];
 
   function addDistance(item, distance) {
@@ -41,11 +39,21 @@ const findNearestMarkers = (markers, lat, lng) => {
 
   nearestMarkers.sort((a, b) => a.distance - b.distance);
   const result = nearestMarkers.slice(0, 3);
-  const final = getDataFromNearests(result);
+  const final = getDataFromNearests(result, lastDocument);
   return final;
 };
-
-const getDataFromNearests = (elements) => {
+const processObject = (data) => {
+  const newData = {
+    temperature: data.field1,
+    humidity: data.field2,
+    pm25: data.field3,
+    pm10: data.field4,
+    CO: data.field5,
+    poisonGas: data.field6,
+  };
+  return newData;
+};
+const getDataFromNearests = (elements, lastDocument) => {
   const newArray = [];
   function addItem(item, value) {
     return {
@@ -53,15 +61,16 @@ const getDataFromNearests = (elements) => {
       value: value,
     };
   }
+  const output = processObject(lastDocument);
   elements.map((element) => {
     if (element.popup == "HKB-1") {
-      newArray.push(addItem(element, dataDUT1));
+      newArray.push(addItem(element, output));
     } else if (element.popup == "HKB-2") {
-      newArray.push(addItem(element, dataDUT2));
+      newArray.push(addItem(element, multiplierLastValue(output)));
     } else if (element.popup == "HKB-3") {
-      newArray.push(addItem(element, dataDUT3));
+      newArray.push(addItem(element, multiplierLastValue(output)));
     } else if (element.popup == "HKB-Center") {
-      newArray.push(addItem(element, dataDUTCenter));
+      newArray.push(addItem(element, multiplierLastValue(output)));
     }
   });
   return newArray;
