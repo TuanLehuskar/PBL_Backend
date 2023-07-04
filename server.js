@@ -65,57 +65,42 @@ const getDataFromMongoDB = async (dataCountFill, intervalFill) => {
   return convertedData;
 };
 
+const getMultiplier = (elementId) => {
+  switch (elementId) {
+    case "2":
+      return randomMultiplier2();
+    case "3":
+      return randomMultiplier3();
+    case "4":
+      return randomMultiplier4();
+    default:
+      return 1; // Multiplier's default value
+  }
+};
 app.get("/diagram/:id", async (req, res) => {
   try {
-    const convertedData = await getDataFromMongoDB(168, 60);
-
+    const convertedData = await getDataFromMongoDB(10080, 1);
     if (req.params.id == "1") {
       res.json(convertedData);
     } else {
-      let finalResult = convertedData;
-      let elementData;
       const elementId = req.params.id;
-      switch (elementId) {
-        case "2":
-          for (const key in finalResult) {
-            if (
-              finalResult.hasOwnProperty(key) &&
-              Array.isArray(finalResult[key])
-            ) {
-              finalResult[key] = finalResult[key].map((e) => ({
-                ...e,
-                value: Math.round(e.value * randomMultiplier2()),
-              }));
-            }
+      const multiplier = getMultiplier(elementId);
+
+      const finalResult = Object.entries(convertedData).reduce(
+        (result, [key, value]) => {
+          if (Array.isArray(value)) {
+            result[key] = value.map((e) => ({
+              ...e,
+              value: Math.round(e.value * multiplier),
+            }));
+          } else {
+            result[key] = value;
           }
-          break;
-        case "3":
-          for (const key in finalResult) {
-            if (
-              finalResult.hasOwnProperty(key) &&
-              Array.isArray(finalResult[key])
-            ) {
-              finalResult[key] = finalResult[key].map((e) => ({
-                ...e,
-                value: Math.round(e.value * randomMultiplier3()),
-              }));
-            }
-          }
-          break;
-        case "4":
-          for (const key in finalResult) {
-            if (
-              finalResult.hasOwnProperty(key) &&
-              Array.isArray(finalResult[key])
-            ) {
-              finalResult[key] = finalResult[key].map((e) => ({
-                ...e,
-                value: Math.round(e.value * randomMultiplier4()),
-              }));
-            }
-          }
-          break;
-      }
+          return result;
+        },
+        {}
+      );
+
       res.json(finalResult);
     }
   } catch (err) {
@@ -197,4 +182,27 @@ app.get("/api/markers/:id", async (req, res, next) => {
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`App running on port ${port}`);
+  const fetchDataAndSaveToDB = async () => {
+    try {
+      const response = await getDataFromAPI(
+        "https://thingspeak.com/channels/2099351/feed.json"
+      );
+      const data = response;
+
+      // Xử lý dữ liệu JSON
+
+      // Lưu dữ liệu vào MongoDB
+      await Data.insertMany(data.feeds, { ordered: false });
+
+      console.log("Data saved to MongoDB");
+    } catch (error) {
+      console.error("Failed to save data to MongoDB");
+    }
+  };
+
+  // Thực hiện lần đầu tiên
+  fetchDataAndSaveToDB();
+
+  // Lặp lại sau mỗi 5 phút
+  setInterval(fetchDataAndSaveToDB, 5 * 60 * 1000);
 });

@@ -49,10 +49,10 @@ const randomMultiplier = () => {
   return Math.random() * 0.1 + 0.9;
 };
 const randomMultiplier2 = () => {
-  return Math.random() * 0.05 + 0.95;
+  return Math.random() * 0.15 + 0.95;
 };
 const randomMultiplier3 = () => {
-  return Math.random() * 0.1 + 0.9;
+  return Math.random() * 0.2 + 0.9;
 };
 const randomMultiplier4 = () => {
   return Math.random() * 0.15 + 0.85;
@@ -78,32 +78,32 @@ const handleDataDiagram = (data) => {
     const temperatureObj = {
       date: date.toISOString().split("T")[0],
       time,
-      value: parseInt(item.field1) || 0,
+      value: parseFloat(item.field1) || 0,
     };
     const humidityObj = {
       date: date.toISOString().split("T")[0],
       time,
-      value: parseInt(item.field2) || 0,
+      value: parseFloat(item.field2) || 0,
     };
     const pm25Obj = {
       date: date.toISOString().split("T")[0],
       time,
-      value: parseInt(item.field3) || 0,
+      value: parseFloat(item.field3) || 0,
     };
     const pm10Obj = {
       date: date.toISOString().split("T")[0],
       time,
-      value: parseInt(item.field4) || 0,
+      value: parseFloat(item.field4) || 0,
     };
     const COObj = {
       date: date.toISOString().split("T")[0],
       time,
-      value: parseInt(item.field5) || 0,
+      value: parseFloat(item.field5) || 0,
     };
     const poisonGasObj = {
       date: date.toISOString().split("T")[0],
       time,
-      value: parseInt(item.field6) || 0,
+      value: parseFloat(item.field6) || 0,
     };
 
     convertedData.temperature.push(temperatureObj);
