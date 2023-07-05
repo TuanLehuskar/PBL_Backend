@@ -74,9 +74,13 @@ const getMultiplier = (elementId) => {
     case "4":
       return randomMultiplier4();
     default:
-      return 1; // Multiplier's default value
+      return 1;
   }
 };
+app.get("/", (req, res) => {
+  res.status(200).send("Server connected successfully!");
+});
+
 app.get("/diagram/:id", async (req, res) => {
   try {
     const convertedData = await getDataFromMongoDB(10080, 1);
@@ -200,9 +204,7 @@ app.listen(port, () => {
     }
   };
 
-  // Thực hiện lần đầu tiên
   fetchDataAndSaveToDB();
 
-  // Lặp lại sau mỗi 5 phút
   setInterval(fetchDataAndSaveToDB, 5 * 60 * 1000);
 });
