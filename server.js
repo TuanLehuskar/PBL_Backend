@@ -19,7 +19,6 @@ const {
 const { getDataFromAPI } = require("./src/Data/apiService");
 const { interpolation } = require("./src/controllers/locationsController");
 const Data = require("./src/models/dataModel");
-
 const allowCrossDomain = function (req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE");
@@ -51,9 +50,9 @@ const getLastDataFromMongoDB = async () => {
 const getDataFromMongoDB = async (dataCountFill, intervalFill) => {
   const dataCount = dataCountFill;
   const interval = intervalFill; // 60 minutes
-
+  const timeStamp = new Date().setHours(0, 0, 0, 0);
   const result = await Data.find({
-    created_at: { $lt: new Date().setHours(0, 0, 0, 0) },
+    created_at: { $lt: timeStamp },
   })
     .sort({ entry_id: -1 }) // Sort in descending order of entry_id
     .limit(dataCount * interval);
@@ -200,11 +199,11 @@ app.listen(port, () => {
 
       console.log("Data saved to MongoDB");
     } catch (error) {
-      console.error("Failed to save data to MongoDB");
+      console.error("Failed to save data to MongoDB1");
     }
   };
 
   fetchDataAndSaveToDB();
 
-  setInterval(fetchDataAndSaveToDB, 5 * 60 * 1000);
+  setInterval(fetchDataAndSaveToDB, 3 * 60 * 1000);
 });
