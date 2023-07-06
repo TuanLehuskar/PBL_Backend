@@ -1,6 +1,3 @@
-const { getDataFromAPI } = require("./apiService");
-const path = require("path");
-const { inspect } = require("util");
 const fs = require("fs");
 const mongoose = require("mongoose");
 const Data = require("../models/dataModel");
@@ -58,6 +55,54 @@ const randomMultiplier4 = () => {
   return Math.random() * 0.15 + 0.85;
 };
 
+// const handleDataDiagram = (data) => {
+//   const convertedData = {
+//     temperature: [],
+//     humidity: [],
+//     pm25: [],
+//     pm10: [],
+//     CO: [],
+//     poisonGas: [],
+//   };
+
+//   data.forEach((item) => {
+//     const date = new Date(item.created_at);
+
+//     const temperatureObj = {
+//       timeStamp: date,
+//       value: parseFloat(item.field1) || 0,
+//     };
+//     const humidityObj = {
+//       timeStamp: date,
+//       value: parseFloat(item.field2) || 0,
+//     };
+//     const pm25Obj = {
+//       timeStamp: date,
+//       value: parseFloat(item.field3) || 0,
+//     };
+//     const pm10Obj = {
+//       timeStamp: date,
+//       value: parseFloat(item.field4) || 0,
+//     };
+//     const COObj = {
+//       timeStamp: date,
+//       value: parseFloat(item.field5) || 0,
+//     };
+//     const poisonGasObj = {
+//       timeStamp: date,
+//       value: parseFloat(item.field6) || 0,
+//     };
+
+//     convertedData.temperature.push(temperatureObj);
+//     convertedData.humidity.push(humidityObj);
+//     convertedData.pm25.push(pm25Obj);
+//     convertedData.pm10.push(pm10Obj);
+//     convertedData.CO.push(COObj);
+//     convertedData.poisonGas.push(poisonGasObj);
+//   });
+
+//   return convertedData;
+// };
 const handleDataDiagram = (data) => {
   const convertedData = {
     temperature: [],
@@ -70,39 +115,31 @@ const handleDataDiagram = (data) => {
 
   data.forEach((item) => {
     const date = new Date(item.created_at);
-    const hours = date.getHours().toString().padStart(2, "0");
-    const minutes = date.getMinutes().toString().padStart(2, "0");
-    const seconds = date.getSeconds().toString().padStart(2, "0");
-    const time = `${hours}:${minutes}:${seconds}`;
+    const utcTime = date.getTime();
+    const localTime = new Date(utcTime + 7 * 3600000); // Thêm mốc múi giờ +07:00
 
     const temperatureObj = {
-      date: date.toISOString().split("T")[0],
-      time,
+      timeStamp: localTime,
       value: parseFloat(item.field1) || 0,
     };
     const humidityObj = {
-      date: date.toISOString().split("T")[0],
-      time,
+      timeStamp: localTime,
       value: parseFloat(item.field2) || 0,
     };
     const pm25Obj = {
-      date: date.toISOString().split("T")[0],
-      time,
+      timeStamp: localTime,
       value: parseFloat(item.field3) || 0,
     };
     const pm10Obj = {
-      date: date.toISOString().split("T")[0],
-      time,
+      timeStamp: localTime,
       value: parseFloat(item.field4) || 0,
     };
     const COObj = {
-      date: date.toISOString().split("T")[0],
-      time,
+      timeStamp: localTime,
       value: parseFloat(item.field5) || 0,
     };
     const poisonGasObj = {
-      date: date.toISOString().split("T")[0],
-      time,
+      timeStamp: localTime,
       value: parseFloat(item.field6) || 0,
     };
 
