@@ -7,7 +7,10 @@ const dataSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
-  entry_id: Number,
+  entry_id: {
+    type: Number,
+    unique: true,
+  },
   field1: String,
   field2: String,
   field3: String,
