@@ -9,6 +9,7 @@ const dataSchema = new mongoose.Schema({
   },
   entry_id: {
     type: Number,
+    required: true,
     unique: true,
   },
   field1: String,
