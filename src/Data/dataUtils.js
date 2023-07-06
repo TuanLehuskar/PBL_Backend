@@ -116,7 +116,7 @@ const handleDataDiagram = (data) => {
   data.forEach((item) => {
     const date = new Date(item.created_at);
     const utcTime = date.getTime();
-    const localTime = new Date(utcTime + 7 * 3600000); // Thêm mốc múi giờ +07:00
+    const localTime = new Date(utcTime + 6 * 3600000); // Thêm mốc múi giờ +07:00
 
     const temperatureObj = {
       timeStamp: localTime,
