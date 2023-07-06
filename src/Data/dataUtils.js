@@ -30,7 +30,11 @@ const separateDataByField = (data, field) => {
   return separatedData;
 };
 const handleJSONValue = (data) => {
+  const date = new Date(data.created_at);
+  const utcTime = date.getTime();
+  const localTime = new Date(utcTime + 7 * 3600000); // Thêm mốc múi giờ +07:00
   const formattedData = {
+    timeStamp: localTime,
     temperature: data.field1 !== null ? parseFloat(data.field1) : 30,
     humidity: data.field2 !== null ? parseFloat(data.field2) : 70,
     pm25: data.field3 !== null ? parseFloat(data.field3) : 20,
