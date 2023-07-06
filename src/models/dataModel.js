@@ -4,8 +4,6 @@ const dataSchema = new mongoose.Schema({
   created_at: {
     type: Date,
     default: Date.now,
-    required: true,
-    unique: true,
   },
   entry_id: {
     type: Number,
