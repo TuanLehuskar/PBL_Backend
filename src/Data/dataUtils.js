@@ -171,10 +171,18 @@ const handleLastValue = (data) => {
 
 const multiplierLastValue = (data) => {
   const result = {};
+  let isFirstField = true; // Biến kiểm tra xem field hiện tại có phải là field đầu tiên hay không
+
   for (let field in data) {
-    const value = Math.round(data[field] * randomMultiplier());
-    result[field] = value;
+    if (isFirstField) {
+      result[field] = data[field];
+      isFirstField = false;
+    } else {
+      const value = Math.round(data[field] * randomMultiplier());
+      result[field] = value;
+    }
   }
+
   return result;
 };
 
