@@ -122,6 +122,26 @@ const handleLastValue = (data) => {
   return result;
 };
 
+const warningCheck = (data) => {
+  const filteredData = {
+    pm25: data.pm25
+      .filter((obj) => obj.value >= 36)
+      .map((obj) => ({ timeStamp: obj.timeStamp, value: obj.value })),
+    pm10: data.pm10
+      .filter((obj) => obj.value >= 155)
+      .map((obj) => ({ timeStamp: obj.timeStamp, value: obj.value })),
+    CO: data.CO.filter((obj) => obj.value >= 100).map((obj) => ({
+      timeStamp: obj.timeStamp,
+      value: obj.value,
+    })),
+    poisonGas: data.poisonGas
+      .filter((obj) => obj.value >= 50)
+      .map((obj) => ({ timeStamp: obj.timeStamp, value: obj.value })),
+  };
+
+  return filteredData;
+};
+
 const multiplierLastValue = (data) => {
   const result = {};
   let isFirstField = true; // Biến kiểm tra xem field hiện tại có phải là field đầu tiên hay không
@@ -138,6 +158,25 @@ const multiplierLastValue = (data) => {
 
   return result;
 };
+const multiplyValuesWithRandom = (data) => {
+  const modifiedData = { ...data };
+
+  for (let field in modifiedData) {
+    const fieldArray = modifiedData[field];
+    if (Array.isArray(fieldArray)) {
+      modifiedData[field] = fieldArray.map((obj) => {
+        if (obj && obj.hasOwnProperty("value")) {
+          const randomMultiplier = Math.random() * 0.2 + 0.9; // Sinh số ngẫu nhiên từ 0.9 đến 1.1
+          const modifiedValue = Math.round(obj.value * randomMultiplier);
+          return { ...obj, value: modifiedValue };
+        }
+        return obj;
+      });
+    }
+  }
+
+  return modifiedData;
+};
 
 module.exports = {
   handleTimeData,
@@ -150,4 +189,6 @@ module.exports = {
   handleLastValue,
   multiplierLastValue,
   handleJSONValue,
+  warningCheck,
+  multiplyValuesWithRandom,
 };

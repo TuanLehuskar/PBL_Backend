@@ -15,6 +15,8 @@ const {
   randomMultiplier4,
   multiplierLastValue,
   handleJSONValue,
+  warningCheck,
+  multiplyValuesWithRandom,
 } = require("./src/Data/dataUtils");
 const { getDataFromAPI } = require("./src/Data/apiService");
 const { interpolation } = require("./src/controllers/locationsController");
@@ -82,7 +84,7 @@ app.get("/", (req, res) => {
 
 app.get("/diagram/:id", async (req, res) => {
   try {
-    const convertedData = await getDataFromMongoDB(10080, 1);
+    const convertedData = await getDataFromMongoDB(2016, 1);
     if (req.params.id == "1") {
       res.json(convertedData);
     } else {
@@ -111,7 +113,21 @@ app.get("/diagram/:id", async (req, res) => {
     res.status(500).send("Internal Server Error");
   }
 });
-
+app.get("/warning/:id", async (req, res) => {
+  try {
+    const convertedData = await getDataFromMongoDB(288, 1);
+    const warningData = warningCheck(convertedData);
+    if (req.params.id == "1") {
+      res.json(warningData);
+    } else {
+      const finalData = multiplyValuesWithRandom(warningData);
+      res.json(finalData);
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal Server Error");
+  }
+});
 app.get("/", async (req, res) => {
   try {
     const response = await getDataFromAPI(
